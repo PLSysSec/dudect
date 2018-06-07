@@ -1,4 +1,5 @@
-all: dut_aes32 dut_aesbitsliced dut_cmpmemcmp dut_cmpct dut_donna dut_donnabad 
+all: dut_reader
+#all: dut_aes32 dut_aesbitsliced dut_cmpmemcmp dut_cmpct dut_donna dut_donnabad 
 
 OBJS = src/cpucycles.o src/fixture.o src/random.o \
 src/ttest.o src/percentile.o
@@ -22,6 +23,9 @@ LIBS	= -lm
 LDFLAGS = $(OPTIMIZATION)
 
 INCS	= -Iinc/
+
+dut_reader: $(OBJS)
+	$(CC) $(LDFLAGS) $(INCS) -o dudect_reader_$(OPTIMIZATION) $(OBJS) $(LIBS)
 
 dut_aes32: $(OBJS) $(OBJS_AES32) dut/aes32/dut_aes32.c
 	$(CC) $(LDFLAGS) $(INCS) -o dudect_aes32_$(OPTIMIZATION) dut/aes32/$@.c $(OBJS) $(OBJS_AES32) $(LIBS)

@@ -65,12 +65,32 @@ static void prepare_percentiles(int64_t *ticks) {
   }
 }
 
+/*
 static void measure(int64_t *ticks, uint8_t *input_data) {
   for (size_t i = 0; i < number_measurements; i++) {
     ticks[i] = cpucycles();
     do_one_computation(input_data + i * chunk_size);
   }
   ticks[number_measurements] = cpucycles();
+}
+*/
+
+static void read_classes_and_ticks(uint8_t *classes, int64_t *ticks) {
+  FILE *fp = fopen("classes.log", "r");
+  char buf[32];
+
+  for (int i = 0; i < number_measurements; i++) {
+    fgets(buf, 32, fp);
+    classes[i] = atoi(buf);
+  }
+  fclose(fp);
+
+  fp = fopen("output.log", "r");
+  for (int i = 0; i < number_measurements + 1; i++) {
+    fgets(buf, 32, fp);
+    ticks[i] = strtoll(buf, NULL, 16);
+  }
+  fclose(fp);
 }
 
 static void differentiate(int64_t *exec_times, int64_t *ticks) {
@@ -193,7 +213,7 @@ static void report(void) {
   }
 }
 
-static void doit(void) {
+static void doit(const char* cmd) {
   // XXX move these callocs to parent
   int64_t *ticks = calloc(number_measurements + 1, sizeof(int64_t));
   int64_t *exec_times = calloc(number_measurements, sizeof(int64_t));
@@ -205,8 +225,10 @@ static void doit(void) {
     die();
   }
 
-  prepare_inputs(input_data, classes);
-  measure(ticks, input_data);
+  //prepare_inputs(input_data, classes);
+  //measure(ticks, input_data);
+  system(cmd); // generate data
+  read_classes_and_ticks(classes, ticks);
   differentiate(exec_times, ticks); // inplace
 
   // we compute the percentiles only if they are not filled yet
@@ -226,13 +248,27 @@ int main(int argc, char **argv) {
   (void)argc;
   (void)argv;
 
-  init_dut();
+  if (argc < 2) {
+    fprintf(stderr, "Usage: ./dudect_reader \"BENCHMARK CMD\"\n");
+    fprintf(stderr, " e.g.: ./dudect_reader \"ct-node bench_wasm.js\"\n");
+    die();
+  }
+
+  system(argv[1]); // generate params.log (and run the full benchmark but whatever)
+  FILE* fp = fopen("params.log", "r");
+  char buf[64];
+  fgets(buf, 64, fp);
+  chunk_size = atoll(buf);
+  fgets(buf, 64, fp);
+  number_measurements = atoll(buf);
+  fclose(fp);
+
   for (int i = 0; i < number_tests; i++) {
     t[i] = malloc(sizeof(t_ctx));
     t_init(t[i]);
   }
 
   for (;;) {
-    doit();
+    doit(argv[1]);
   }
 }
