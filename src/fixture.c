@@ -218,15 +218,11 @@ static void doit(const char* cmd) {
   int64_t *ticks = calloc(number_measurements + 1, sizeof(int64_t));
   int64_t *exec_times = calloc(number_measurements, sizeof(int64_t));
   uint8_t *classes = calloc(number_measurements, sizeof(uint8_t));
-  uint8_t *input_data =
-      calloc(number_measurements * chunk_size, sizeof(uint8_t));
 
-  if (!ticks || !exec_times || !classes || !input_data) {
+  if (!ticks || !exec_times || !classes) {
     die();
   }
 
-  //prepare_inputs(input_data, classes);
-  //measure(ticks, input_data);
   system(cmd); // generate data
   read_classes_and_ticks(classes, ticks);
   differentiate(exec_times, ticks); // inplace
@@ -241,7 +237,6 @@ static void doit(const char* cmd) {
   free(ticks);
   free(exec_times);
   free(classes);
-  free(input_data);
 }
 
 int main(int argc, char **argv) {
@@ -257,8 +252,6 @@ int main(int argc, char **argv) {
   system(argv[1]); // generate params.log (and run the full benchmark but whatever)
   FILE* fp = fopen("params.log", "r");
   char buf[64];
-  fgets(buf, 64, fp);
-  chunk_size = atoll(buf);
   fgets(buf, 64, fp);
   number_measurements = atoll(buf);
   fclose(fp);
