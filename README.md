@@ -1,6 +1,9 @@
 dudect: dude, is my code constant time?
 =======================================
 
+This repository, forked from [dudect](https://github.com/oreparaz/dudect), 
+contains a version of dudect that supports CT-Wasm. 
+
 This is a humble try at determining whether a piece of code runs in
 constant time or not. The approach is easy: run it with different
 inputs, measure execution time and apply statistics.
